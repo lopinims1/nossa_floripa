@@ -1,15 +1,17 @@
 import { supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const body = await req.json()
-  const { data, error } = await supabase.from('loja').update(body).eq('id', params.id).select()
+  const { data, error } = await supabase.from('loja').update(body).eq('id', id).select()
   if (error) return NextResponse.json({ error }, { status: 500 })
   return NextResponse.json(data[0])
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  const { error } = await supabase.from('loja').delete().eq('id', params.id)
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { error } = await supabase.from('loja').delete().eq('id', id)
   if (error) return NextResponse.json({ error }, { status: 500 })
   return NextResponse.json({ message: 'Deletado com sucesso' })
 }
