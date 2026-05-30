@@ -12,7 +12,7 @@ const merriweatherSans = Merriweather_Sans({ subsets: ["latin"], weight: ["600"]
 
 const imagens = [row1, row2, row3];
 
-export default function Register() {
+export default function RegisterPage() {
   const [imagemAtual, setImagemAtual] = useState(0);
 
   const [nome, setNome] = useState("");
@@ -44,7 +44,7 @@ export default function Register() {
 
         <div className="border-2 border-transparent">
 
-          {/* Row de imagens da tela */}
+          {/* Row de imagens na tela */}
           <div className="relative w-210 overflow-hidden">
             {imagens.map((img, i) => (
               <img
@@ -70,7 +70,7 @@ export default function Register() {
 
 
         {/* Formulário */}
-        <div className="flex items-center justify-center w-full max-w-lg mb-20 border-2 border-transparent">
+        <div className="flex items-center justify-center w-full max-w-lg mb-30 border-2 border-transparent">
           <div className="flex flex-col gap-7 w-full">
 
             <div className="flex items-center justify-center gap-3">
