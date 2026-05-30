@@ -1,7 +1,7 @@
 import DesktopLayout from "./DesktopLayout";
 import MobileLayout from "./MobileLayout";
 
-export default function RegisterPage() {
+export default function PerfilPage() {
   return (
     <>
       {/* Desktop: lg+ (≥ 1024px) */}
