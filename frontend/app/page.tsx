@@ -1,11 +1,13 @@
 "use client";
 import { useRef } from "react";
+import Image from "next/image"
 import banner2 from "@/app/public/banner2.jpg";
 import eventoImg from "@/app/public/eventoImg.png";
 import eventoImg2 from "@/app/public/eventoImg2.png";
 import userAvatar from "@/app/public/userAvatar.jpg";
 import LikeIcon from "@/app/public/icons/Like.svg";
 import ShareIcon from "@/app/public/icons/Share.svg";
+import Asidebar from "@/components/asidebar";
 
 const eventos = [
   { id: 1, title: "Evento no centro", description: "Hoje as 14:30 terá um evento de limpeza no centro de Floripa. O que acha de ajudar? Ajudar renderá mais pontos para a sua conta, que pode ser trocado por personalizações do seu perfil.", images: [eventoImg, eventoImg2] },
@@ -35,7 +37,7 @@ function EventoCard({ evento }: { evento: typeof eventos[0] }) {
 
         <div ref={imgRef} className="flex gap-2 overflow-x-auto scroll-smooth" style={{ scrollbarWidth: "none" }}>
           {evento.images.map((img, i) => (
-            <img key={i} src={img.src} alt="" className="w-full h-36 object-cover rounded shrink-0" />
+            <img key={i} src={img.src}  className="w-58 h-36 object-cover border border-[#57715E] rounded shrink-0" />
           ))}
         </div>
         {evento.images.length > 1 && (
@@ -69,8 +71,7 @@ export default function Home() {
   return (
     <div className="flex bg-[#BFD788] w-screen h-screen overflow-hidden font-sans dark:bg-black">
 
-      {/* Asidebar na esquerda */}
-      <div className="h-full w-20 bg-red-500 shrink-0"></div>
+        <Asidebar />
 
       {/* Conteúdo cental */}
       <div className="flex flex-col items-center py-6 px-6 bg-[#F0FFD3] flex-1 overflow-y-auto overflow-x-hidden">
