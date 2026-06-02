@@ -1,18 +1,43 @@
-import DesktopLayout from "./DesktopLayout";
-import MobileLayout from "./MobileLayout";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function PerfilPage() {
-  return (
-    <>
-      {/* Desktop: lg+ (≥ 1024px) */}
-      <div className="hidden lg:block">
-        <DesktopLayout />
-      </div>
+  const router = useRouter();
 
-      {/* Mobile/Tablet: abaixo de lg */}
-      <div className="block lg:hidden">
-        <MobileLayout />
-      </div>
-    </>
+  useEffect(() => {
+    async function carregar() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const { data: perfil } = await supabase
+        .from("perfis")
+        .select("username")
+        .eq("id", user.id)
+        .single();
+
+      if (!perfil) {
+        router.push("/");
+        return;
+      }
+
+      router.replace(`/perfil/${perfil.username}`);
+    }
+
+    carregar();
+  }, [router]);
+
+  return (
+    <div className="flex items-center justify-center w-screen h-screen">
+      <div className="w-10 h-10 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
+    </div>
   );
 }

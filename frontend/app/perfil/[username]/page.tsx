@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Asidebar from "@/components/asidebar";
 import { supabase } from "@/lib/supabase";
@@ -119,6 +119,7 @@ export default function PerfilDesktopLayout() {
   const [totalPosts, setTotalPosts] = useState(0);
   const [menuAberto, setMenuAberto] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
+  const inputAvatarRef = useRef<HTMLInputElement>(null);
 
   const proprio = usuarioAtual === perfil?.id;
 
@@ -166,6 +167,19 @@ export default function PerfilDesktopLayout() {
     setSeguindo(!seguindo);
   };
 
+  const handleTrocarFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !perfil) return;
+    const ext = file.name.split(".").pop();
+    const path = `${perfil.id}/avatar.${ext}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (error) return;
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    const url = data.publicUrl + `?t=${Date.now()}`;
+    await supabase.from("perfis").update({ avatar_url: url }).eq("id", perfil.id);
+    setPerfil((prev) => prev ? { ...prev, avatar_url: url } : prev);
+  };
+
   if (!perfil) return (
     <div className="flex bg-[var(--bg-sidebar)] w-screen h-screen overflow-hidden">
       <Asidebar />
@@ -183,12 +197,32 @@ export default function PerfilDesktopLayout() {
 
           {/* Header perfil */}
           <div className="flex gap-6 items-start mb-6 relative">
-            {/* Avatar */}
-            <div className="w-32 h-32 rounded-full bg-[var(--bg-card)] overflow-hidden border-4 border-[var(--cor-primaria)] shrink-0">
-              {perfil.avatar_url
-                ? <img src={perfil.avatar_url} className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-[var(--cor-primaria)]">{perfil.nome?.[0]}</div>
-              }
+
+            {/* Avatar com upload direto */}
+            <div className="relative w-32 h-32 shrink-0">
+              <div className="w-32 h-32 rounded-full bg-[var(--bg-card)] overflow-hidden border-4 border-[var(--cor-primaria)]">
+                {perfil.avatar_url
+                  ? <img src={perfil.avatar_url} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-[var(--cor-primaria)]">{perfil.nome?.[0]}</div>
+                }
+              </div>
+              {proprio && (
+                <>
+                  <div
+                    onClick={() => inputAvatarRef.current?.click()}
+                    className="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition cursor-pointer"
+                  >
+                    <span className="text-white text-xs font-semibold text-center px-2">Trocar foto</span>
+                  </div>
+                  <input
+                    ref={inputAvatarRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleTrocarFoto}
+                  />
+                </>
+              )}
             </div>
 
             {/* Infos */}
