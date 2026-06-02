@@ -39,7 +39,7 @@ const raridadeIcone: Record<string, any> = {
   lendario: Crown,
 };
 
-export default function LojaDesktopLayout() {
+export default function DesktopLayout() {
   const [itens, setItens] = useState<Item[]>([]);
   const [inventario, setInventario] = useState<Set<string>>(new Set());
   const [floripoints, setFloripoints] = useState(0);
@@ -134,9 +134,8 @@ export default function LojaDesktopLayout() {
 
           {/* Toast */}
           {mensagem && (
-            <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${
-              mensagem.tipo === "ok" ? "bg-[#3C5E45] text-white" : "bg-red-500 text-white"
-            }`}>
+            <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${mensagem.tipo === "ok" ? "bg-[#3C5E45] text-white" : "bg-red-500 text-white"
+              }`}>
               {mensagem.texto}
             </div>
           )}
@@ -148,11 +147,10 @@ export default function LojaDesktopLayout() {
                 <button
                   key={f}
                   onClick={() => setFiltroTipo(f)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize ${
-                    filtroTipo === f
-                      ? "bg-[#3C5E45] text-white border-[#3C5E45]"
-                      : "bg-white text-[#3C5E45] border-[#C8A97E] hover:border-[#3C5E45]"
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize ${filtroTipo === f
+                    ? "bg-[#3C5E45] text-white border-[#3C5E45]"
+                    : "bg-white text-[#3C5E45] border-[#C8A97E] hover:border-[#3C5E45]"
+                    }`}
                 >
                   {f === "todos" ? "Todos" : f === "moldura" ? "Molduras" : f === "emoji" ? "Emojis" : "Badges"}
                 </button>
@@ -163,11 +161,10 @@ export default function LojaDesktopLayout() {
                 <button
                   key={f}
                   onClick={() => setFiltroRaridade(f)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                    filtroRaridade === f
-                      ? "bg-[#3C5E45] text-white border-[#3C5E45]"
-                      : "bg-white text-[#3C5E45] border-[#C8A97E] hover:border-[#3C5E45]"
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${filtroRaridade === f
+                    ? "bg-[#3C5E45] text-white border-[#3C5E45]"
+                    : "bg-white text-[#3C5E45] border-[#C8A97E] hover:border-[#3C5E45]"
+                    }`}
                 >
                   {f === "todos" ? "Raridade" : raridadeLabel[f]}
                 </button>
@@ -186,9 +183,8 @@ export default function LojaDesktopLayout() {
                 return (
                   <div
                     key={item.id}
-                    className={`bg-white rounded-xl border p-4 flex flex-col gap-3 transition-all ${
-                      possuiItem ? "border-[#3C5E45]/40 opacity-80" : "border-[#E8D5C0] hover:border-[#3C5E45] hover:shadow-sm"
-                    }`}
+                    className={`bg-white rounded-xl border p-4 flex flex-col gap-3 transition-all ${possuiItem ? "border-[#3C5E45]/40 opacity-80" : "border-[#E8D5C0] hover:border-[#3C5E45] hover:shadow-sm"
+                      }`}
                   >
                     {/* Preview do item */}
                     <div className="aspect-square rounded-lg bg-[#FFF5E7] flex items-center justify-center overflow-hidden">
@@ -223,11 +219,10 @@ export default function LojaDesktopLayout() {
                       <button
                         onClick={() => comprar(item)}
                         disabled={comprando === item.id || floripoints < item.preco_pontos}
-                        className={`w-full py-2 rounded-lg text-sm font-medium transition-all ${
-                          floripoints >= item.preco_pontos
-                            ? "bg-[#3C5E45] text-white hover:bg-[#2e4a36]"
-                            : "bg-[#E8D5C0] text-[#A89070] cursor-not-allowed"
-                        } disabled:opacity-60`}
+                        className={`w-full py-2 rounded-lg text-sm font-medium transition-all ${floripoints >= item.preco_pontos
+                          ? "bg-[#3C5E45] text-white hover:bg-[#2e4a36]"
+                          : "bg-[#E8D5C0] text-[#A89070] cursor-not-allowed"
+                          } disabled:opacity-60`}
                       >
                         {comprando === item.id ? "Comprando..." : (
                           <span className="flex items-center justify-center gap-1">

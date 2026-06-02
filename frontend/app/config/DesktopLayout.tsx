@@ -17,7 +17,7 @@ const temas = [
   { id: "aurora", nome: "Aurora", bg: "#F8E8F4", verde: "#8a1a6b", descricao: "Rosa claro com roxo vibrante" },
 ];
 
-export default function ConfigDesktopLayout() {
+export default function DesktopLayout() {
   const router = useRouter();
   const { tema, setTema } = useTema();
   const [secaoAtiva, setSecaoAtiva] = useState<Secao>("tema");
@@ -68,11 +68,10 @@ export default function ConfigDesktopLayout() {
                   <button
                     key={id}
                     onClick={() => setSecaoAtiva(id)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-left transition-all ${
-                      secaoAtiva === id
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-left transition-all ${secaoAtiva === id
                         ? "bg-[#3C5E45] text-white"
                         : "text-[#3C5E45] hover:bg-[#3C5E45]/10"
-                    }`}
+                      }`}
                   >
                     <Icone className="w-4 h-4" />
                     {label}
@@ -105,9 +104,8 @@ export default function ConfigDesktopLayout() {
                       <button
                         key={t.id}
                         onClick={() => setTema(t.id as any)}
-                        className={`relative p-4 rounded-xl border-2 text-left transition-all ${
-                          tema === t.id ? "border-[#3C5E45]" : "border-[#E8D5C0] hover:border-[#C8A97E]"
-                        }`}
+                        className={`relative p-4 rounded-xl border-2 text-left transition-all ${tema === t.id ? "border-[#3C5E45]" : "border-[#E8D5C0] hover:border-[#C8A97E]"
+                          }`}
                       >
                         {/* Preview */}
                         <div
@@ -149,13 +147,11 @@ export default function ConfigDesktopLayout() {
                         </div>
                         <button
                           onClick={() => item.set(!item.val)}
-                          className={`w-11 h-6 rounded-full transition-all relative ${
-                            item.val ? "bg-[#3C5E45]" : "bg-[#C8A97E]"
-                          }`}
+                          className={`w-11 h-6 rounded-full transition-all relative ${item.val ? "bg-[#3C5E45]" : "bg-[#C8A97E]"
+                            }`}
                         >
-                          <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${
-                            item.val ? "left-6" : "left-1"
-                          }`} />
+                          <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${item.val ? "left-6" : "left-1"
+                            }`} />
                         </button>
                       </div>
                     ))}
@@ -177,13 +173,11 @@ export default function ConfigDesktopLayout() {
                       </div>
                       <button
                         onClick={() => setPerfilPrivado(!perfilPrivado)}
-                        className={`w-11 h-6 rounded-full transition-all relative ${
-                          perfilPrivado ? "bg-[#3C5E45]" : "bg-[#C8A97E]"
-                        }`}
+                        className={`w-11 h-6 rounded-full transition-all relative ${perfilPrivado ? "bg-[#3C5E45]" : "bg-[#C8A97E]"
+                          }`}
                       >
-                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${
-                          perfilPrivado ? "left-6" : "left-1"
-                        }`} />
+                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${perfilPrivado ? "left-6" : "left-1"
+                          }`} />
                       </button>
                     </div>
                     <div className="py-3">
@@ -220,11 +214,10 @@ export default function ConfigDesktopLayout() {
                       <p className="text-xs text-red-400 mb-4">Esta ação é irreversível. Todos os seus dados serão apagados permanentemente.</p>
                       <button
                         onClick={deletarConta}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                          confirmandoDelete
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${confirmandoDelete
                             ? "bg-red-500 text-white"
                             : "bg-white text-red-500 border border-red-300 hover:bg-red-50"
-                        }`}
+                          }`}
                       >
                         <Trash2 className="w-4 h-4" />
                         {confirmandoDelete ? "Confirmar exclusão" : "Deletar conta"}

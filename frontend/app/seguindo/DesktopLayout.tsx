@@ -16,7 +16,7 @@ type Perfil = {
 
 type Aba = "seguindo" | "seguidores";
 
-export default function SeguindoDesktopLayout() {
+export default function DesktopLayout() {
   const searchParams = useSearchParams();
   const targetUserId = searchParams.get("userId"); // perfil de outro usuário (opcional)
 
@@ -91,11 +91,10 @@ export default function SeguindoDesktopLayout() {
               <button
                 key={aba}
                 onClick={() => setAbaAtiva(aba)}
-                className={`px-6 py-3 text-sm font-medium capitalize transition-all border-b-2 -mb-px ${
-                  abaAtiva === aba
+                className={`px-6 py-3 text-sm font-medium capitalize transition-all border-b-2 -mb-px ${abaAtiva === aba
                     ? "border-[#3C5E45] text-[#3C5E45]"
                     : "border-transparent text-[#A89070] hover:text-[#3C5E45]"
-                }`}
+                  }`}
               >
                 {aba === "seguindo" ? `Seguindo (${seguindo.length})` : `Seguidores (${seguidores.length})`}
               </button>
@@ -147,11 +146,10 @@ export default function SeguindoDesktopLayout() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => toggleSeguir(perfil.id)}
-                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                        seguindoIds.has(perfil.id)
+                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${seguindoIds.has(perfil.id)
                           ? "bg-white text-[#3C5E45] border-[#3C5E45] hover:bg-red-50 hover:text-red-500 hover:border-red-300"
                           : "bg-[#3C5E45] text-white border-[#3C5E45] hover:bg-[#2e4a36]"
-                      }`}
+                        }`}
                     >
                       {seguindoIds.has(perfil.id) ? (
                         <><UserCheck className="w-3.5 h-3.5" /> Seguindo</>
@@ -171,18 +169,17 @@ export default function SeguindoDesktopLayout() {
                       {menuAberto === perfil.id && (
                         <div className="absolute right-0 top-10 bg-white border border-[#E8D5C0] rounded-xl shadow-lg z-50 min-w-[180px] overflow-hidden">
                           {[
-                            { label: "Compartilhar", action: () => {} },
+                            { label: "Compartilhar", action: () => { } },
                             { label: "Copiar link", action: () => navigator.clipboard.writeText(window.location.origin + `/perfil/${perfil.username}`) },
                             { label: "Sobre essa conta", action: () => window.location.href = `/perfil/${perfil.username}` },
-                            { label: "Denunciar", action: () => {}, danger: true },
+                            { label: "Denunciar", action: () => { }, danger: true },
                             { label: "Cancelar", action: () => setMenuAberto(null) },
                           ].map((item) => (
                             <button
                               key={item.label}
                               onClick={() => { item.action(); setMenuAberto(null); }}
-                              className={`w-full text-left px-4 py-3 text-sm hover:bg-[#F0E8DE] transition-colors ${
-                                (item as any).danger ? "text-red-500" : "text-[#3C5E45]"
-                              }`}
+                              className={`w-full text-left px-4 py-3 text-sm hover:bg-[#F0E8DE] transition-colors ${(item as any).danger ? "text-red-500" : "text-[#3C5E45]"
+                                }`}
                             >
                               {item.label}
                             </button>

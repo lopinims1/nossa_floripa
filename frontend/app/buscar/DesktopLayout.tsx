@@ -22,7 +22,7 @@ type Post = {
 
 type FiltroBusca = "contas" | "videos";
 
-export default function BuscarDesktopLayout() {
+export default function DesktopLayout() {
   const [query, setQuery] = useState("");
   const [filtroBusca, setFiltroBusca] = useState<FiltroBusca>("contas");
   const [perfis, setPerfis] = useState<Perfil[]>([]);
@@ -113,21 +113,19 @@ export default function BuscarDesktopLayout() {
             <span className="text-sm text-[#A89070] self-center">Procurar por:</span>
             <button
               onClick={() => setFiltroBusca("contas")}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                filtroBusca === "contas"
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${filtroBusca === "contas"
                   ? "bg-[#3C5E45] text-white border-[#3C5E45]"
                   : "bg-white text-[#3C5E45] border-[#C8A97E] hover:border-[#3C5E45]"
-              }`}
+                }`}
             >
               <User className="w-3.5 h-3.5" /> Contas
             </button>
             <button
               onClick={() => setFiltroBusca("videos")}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                filtroBusca === "videos"
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${filtroBusca === "videos"
                   ? "bg-[#3C5E45] text-white border-[#3C5E45]"
                   : "bg-white text-[#3C5E45] border-[#C8A97E] hover:border-[#3C5E45]"
-              }`}
+                }`}
             >
               <Film className="w-3.5 h-3.5" /> Posts
             </button>

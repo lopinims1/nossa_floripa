@@ -12,7 +12,7 @@ type Post = {
   perfis: { nome: string; username: string; avatar_url: string | null };
 };
 
-export default function CurtidosDesktopLayout() {
+export default function DesktopLayout() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [carregando, setCarregando] = useState(true);
 

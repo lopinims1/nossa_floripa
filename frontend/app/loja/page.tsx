@@ -1,10 +1,18 @@
-import LojaDesktopLayout from "./DesktopLayout";
- 
+import DesktopLayout from "./DesktopLayout";
+import MobileLayout from "./MobileLayout";
+
 export default function LojaPage() {
   return (
     <>
-      <div className="hidden lg:block"><LojaDesktopLayout /></div>
-      <div className="block lg:hidden"><LojaDesktopLayout /></div>
+      {/* Desktop: lg+ (≥ 1024px) */}
+      <div className="hidden lg:block">
+        <DesktopLayout />
+      </div>
+
+      {/* Mobile/Tablet: abaixo de lg */}
+      <div className="block lg:hidden">
+        <MobileLayout />
+      </div>
     </>
   );
 }

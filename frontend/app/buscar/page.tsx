@@ -1,10 +1,18 @@
-import BuscarDesktopLayout from "./DesktopLayout";
- 
+import DesktopLayout from "./DesktopLayout";
+import MobileLayout from "./MobileLayout";
+
 export default function BuscarPage() {
   return (
     <>
-      <div className="hidden lg:block"><BuscarDesktopLayout /></div>
-      <div className="block lg:hidden"><BuscarDesktopLayout /></div>
+      {/* Desktop: lg+ (≥ 1024px) */}
+      <div className="hidden lg:block">
+        <DesktopLayout />
+      </div>
+
+      {/* Mobile/Tablet: abaixo de lg */}
+      <div className="block lg:hidden">
+        <MobileLayout />
+      </div>
     </>
   );
 }
