@@ -1,18 +1,10 @@
-import DesktopLayout from "./DesktopLayout";
-import MobileLayout from "./MobileLayout";
-
-export default function HomePage() {
+import ConfigDesktopLayout from "./DesktopLayout";
+ 
+export default function ConfigPage() {
   return (
     <>
-      {/* Desktop: lg+ (≥ 1024px) */}
-      <div className="hidden lg:block">
-        <DesktopLayout />
-      </div>
-
-      {/* Mobile/Tablet: abaixo de lg */}
-      <div className="block lg:hidden">
-        <MobileLayout />
-      </div>
+      <div className="hidden lg:block"><ConfigDesktopLayout /></div>
+      <div className="block lg:hidden"><ConfigDesktopLayout /></div>
     </>
   );
 }

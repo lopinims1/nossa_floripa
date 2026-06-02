@@ -1,18 +1,11 @@
-import DesktopLayout from "./DesktopLayout";
-import MobileLayout from "./MobileLayout";
+import CurtidosDesktopLayout from "./DesktopLayout";
+ 
 
-export default function HomePage() {
+export default function CurtidosPage() {
   return (
     <>
-      {/* Desktop: lg+ (≥ 1024px) */}
-      <div className="hidden lg:block">
-        <DesktopLayout />
-      </div>
-
-      {/* Mobile/Tablet: abaixo de lg */}
-      <div className="block lg:hidden">
-        <MobileLayout />
-      </div>
+      <div className="hidden lg:block"><CurtidosDesktopLayout /></div>
+      <div className="block lg:hidden"><CurtidosDesktopLayout /></div>
     </>
   );
 }

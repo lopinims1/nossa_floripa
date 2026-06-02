@@ -1,75 +1,139 @@
-"use client"
-import Link from "next/link"
-import Image from "next/image"
-import Home from "@/components/asidebar/icons/Home Icon.svg"
-import Search from "@/components/asidebar/icons/Search Icon.svg"
-import Publicar from "@/components/asidebar/icons/Publicar icon.svg"
-import Curtidos from "@/components/asidebar/icons/Curtidos Icon.svg"
-import Seguindo from "@/components/asidebar/icons/Seguindo Icon.svg"
-import Perfil from "@/components/asidebar/icons/Perfil Icon.svg"
-import Config from "@/components/asidebar/icons/Config Icon.svg"
+"use client";
+import { useRouter, usePathname } from "next/navigation";
+import { useState } from "react";
+import { useTema, Tema, temas } from "@/lib/ThemeContext";
+import { supabase } from "@/lib/supabase";
 
-const icons = [
-    { id: 1, image: Home, label: "Home", href: "/" },
-    { id: 2, image: Search, label: "Buscar", href: "/buscar" },
-    { id: 3, image: Publicar, label: "Publicar", href: "/publicar" },
-    { id: 4, image: Curtidos, label: "Curtidos", href: "/curtidos" },
-    { id: 5, image: Seguindo, label: "Seguindo", href: "/seguindo" },
-    { id: 6, image: Perfil, label: "Perfil", href: "/perfil" },
-]
+const temaInfo: Record<Tema, { label: string; emoji: string }> = {
+  floripa: { label: "Floripa", emoji: "🌿" },
+  noturno: { label: "Noturno", emoji: "🌙" },
+  oceano: { label: "Oceano", emoji: "🌊" },
+  urbano: { label: "Urbano", emoji: "🏙️" },
+};
 
-export default function Asidebar() {
-    return (
-        <aside className="group w-20 hover:w-52 h-screen shrink-0 bg-[#c5d98a] flex flex-col py-6 gap-2 transition-all duration-300 ease-in-out overflow-hidden">
-            {/* Avatar */}
-            <div className="px-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-white overflow-hidden shrink-0">
-                    {/* User img */}
+type Props = {
+  paginaAtiva?: string;
+};
+
+export default function Asidebar({ paginaAtiva }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { tema, setTema } = useTema();
+  const [modalPublicar, setModalPublicar] = useState(false);
+  const [modalTema, setModalTema] = useState(false);
+
+  const nav = (href: string) => router.push(href);
+  const ativo = (href: string) => pathname === href || paginaAtiva === href.replace("/", "");
+
+  const iconBtn = (href: string, icon: string, label: string, onClick?: () => void) => (
+    <button
+      onClick={onClick ?? (() => nav(href))}
+      title={label}
+      className={`w-12 h-12 flex items-center justify-center rounded-2xl text-2xl transition-all duration-200
+        ${ativo(href)
+          ? "bg-[var(--cor-secundaria)] text-[var(--cor-branco)] shadow-lg scale-105"
+          : "text-[var(--cor-secundaria)] hover:bg-[var(--cor-secundaria)] hover:text-[var(--cor-branco)] hover:scale-105"
+        }`}
+    >
+      {icon}
+    </button>
+  );
+
+  return (
+    <>
+      <aside className="w-20 shrink-0 flex flex-col items-center py-6 gap-5 bg-[var(--bg-sidebar)] border-r border-[var(--cor-borda)]">
+        {/* Logo */}
+        <div
+          onClick={() => nav("/")}
+          className="w-11 h-11 bg-white rounded-full flex items-center justify-center cursor-pointer shadow-md mb-2 text-lg font-bold text-[var(--cor-primaria)]"
+        >
+          NF
+        </div>
+
+        <div className="flex flex-col gap-3 flex-1">
+          {iconBtn("/", "🏠", "Home")}
+          {iconBtn("/buscar", "🔍", "Pesquisar")}
+          {iconBtn("", "➕", "Publicar", () => setModalPublicar(true))}
+          {iconBtn("/curtidos", "🤍", "Curtidos")}
+          {iconBtn("/seguindo", "👥", "Seguindo")}
+          {iconBtn("/loja", "🛍️", "Loja")}
+          {iconBtn("/perfil", "👤", "Meu Perfil")}
+        </div>
+
+        {/* Config + Tema */}
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => setModalTema(true)}
+            title="Trocar tema"
+            className="w-12 h-12 flex items-center justify-center rounded-2xl text-2xl text-[var(--cor-secundaria)] hover:bg-[var(--cor-secundaria)] hover:text-[var(--cor-branco)] transition-all"
+          >
+            🎨
+          </button>
+          {iconBtn("/config", "⚙️", "Configurações")}
+        </div>
+      </aside>
+
+      {/* Modal Publicar */}
+      {modalPublicar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setModalPublicar(false)}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[var(--bg-main)] rounded-2xl p-6 w-80 flex flex-col gap-3 shadow-2xl border border-[var(--cor-borda)]"
+          >
+            <h2 className="font-bold text-lg text-[var(--cor-texto)] mb-2">O que quer publicar?</h2>
+            {[
+              { label: "📸 Post no feed", sub: "Compartilhe uma boa ação", href: "/publicar?tipo=post" },
+              { label: "🌟 Ajuda semanal", sub: "1 por semana • ganha 300 FloriPoints", href: "/publicar?tipo=ajuda" },
+              { label: "📅 Criar evento", sub: "Junte pessoas para ajudar Floripa", href: "/publicar?tipo=evento" },
+            ].map((item) => (
+              <button
+                key={item.href}
+                onClick={() => { setModalPublicar(false); router.push(item.href); }}
+                className="flex flex-col text-left p-4 rounded-xl border border-[var(--cor-borda)] hover:bg-[var(--bg-card)] transition-all"
+              >
+                <span className="font-semibold text-[var(--cor-texto)]">{item.label}</span>
+                <span className="text-xs text-[var(--cor-texto-suave)] mt-0.5">{item.sub}</span>
+              </button>
+            ))}
+            <button onClick={() => setModalPublicar(false)} className="text-sm text-[var(--cor-texto-suave)] mt-1 hover:opacity-70">Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tema */}
+      {modalTema && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setModalTema(false)}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[var(--bg-main)] rounded-2xl p-6 w-80 flex flex-col gap-3 shadow-2xl border border-[var(--cor-borda)]"
+          >
+            <h2 className="font-bold text-lg text-[var(--cor-texto)] mb-2">🎨 Escolha um tema</h2>
+            {(Object.keys(temaInfo) as Tema[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => { setTema(t); setModalTema(false); }}
+                className={`flex items-center gap-3 p-4 rounded-xl border transition-all
+                  ${tema === t
+                    ? "border-[var(--cor-primaria)] bg-[var(--bg-card)] font-bold"
+                    : "border-[var(--cor-borda)] hover:bg-[var(--bg-card)]"
+                  }`}
+              >
+                <span className="text-2xl">{temaInfo[t].emoji}</span>
+                <div className="text-left">
+                  <p className="font-semibold text-[var(--cor-texto)]">{temaInfo[t].label}</p>
+                  <div className="flex gap-1 mt-1">
+                    {Object.values(temas[t]).slice(0, 4).map((cor, i) => (
+                      <div key={i} className="w-4 h-4 rounded-full border border-black/10" style={{ background: String(cor) }} />
+                    ))}
+                  </div>
                 </div>
-            </div>
-
-            {/* Nav */}
-            <nav className="flex flex-col gap-8 flex-1 w-full px-3">
-                {icons.map(({ id, image: Icon, label, href }) => (
-                    <Link
-                        key={id}
-                        href={href}
-                        title={label}
-                        className="w-full h-12 flex items-center gap-3 px-2 rounded-xl text-[#4a5a2a] hover:bg-white/40 transition-colors duration-200">
-
-                        <span className="shrink-0 w-10 h-10 flex items-center justify-center">
-                            <Image src={Icon} alt={label} width={36} height={36} />
-                        </span>
-                        <span className="
-                            whitespace-nowrap font-semibold text-sm
-                            opacity-0 group-hover:opacity-100
-                            -translate-x-2 group-hover:translate-x-0
-                            transition-all duration-300 ease-in-out
-                        ">
-                            {label}
-                        </span>
-                    </Link>
-                ))}
-            </nav>
-
-            <div className="w-full px-3 mt-2">
-                <Link
-                    href="/config"
-                    title="Config"
-                    className="w-full h-10 flex items-center gap-3 px-2 rounded-xl
-                               text-[#4a5a2a] hover:bg-white/40 transition-colors duration-200"
-                >
-                    <span className="shrink-0 w-12 h-12 flex items-center justify-center">
-                        <Image src={Config} alt="Config" width={40} height={40} />
-                    </span>
-                    
-                        <span className="whitespace-nowrap font-semibold text-sm text-[#4a5a2a]
-                                         animate-in fade-in slide-in-from-left-2 duration-200">
-                            Config
-                        </span>
-                    
-                </Link>
-            </div>
-        </aside>
-    )
+                {tema === t && <span className="ml-auto text-[var(--cor-primaria)]">✓</span>}
+              </button>
+            ))}
+            <button onClick={() => setModalTema(false)} className="text-sm text-[var(--cor-texto-suave)] mt-1 hover:opacity-70">Fechar</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
