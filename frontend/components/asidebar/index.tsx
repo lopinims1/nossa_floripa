@@ -1,144 +1,218 @@
-"use client";
-import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
-import { useTema, Tema, temas } from "@/lib/ThemeContext";
-import { supabase } from "@/lib/supabase";
-import { usePerfilAtual } from "@/lib/usePerfilAtual";
+"use client"
+import { useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import Image from "next/image"
+import { useTema, Tema, temas } from "@/lib/ThemeContext"
+import { usePerfilAtual } from "@/lib/usePerfilAtual"
+import Home from "@/components/asidebar/icons/Home Icon.svg"
+import Search from "@/components/asidebar/icons/Search Icon.svg"
+import Publicar from "@/components/asidebar/icons/Publicar icon.svg"
+import Curtidos from "@/components/asidebar/icons/Curtidos Icon.svg"
+import Seguindo from "@/components/asidebar/icons/Seguindo Icon.svg"
+import Perfil from "@/components/asidebar/icons/Perfil Icon.svg"
+import Config from "@/components/asidebar/icons/Config Icon.svg"
+import Theme from "@/components/asidebar/icons/Theme.svg"
 
-const temaInfo: Record<Tema, { label: string; emoji: string }> = {
-  floripa: { label: "Floripa", emoji: "🌿" },
-  noturno: { label: "Noturno", emoji: "🌙" },
-  oceano: { label: "Oceano", emoji: "🌊" },
-  urbano: { label: "Urbano", emoji: "🏙️" },
-};
+const temaInfo: Record<Tema, { label: string }> = {
+  floripa: { label: "🌿 Floripa" },
+  noturno: { label: "🌙 Noturno" },
+  oceano:  { label: "🌊 Oceano" },
+  urbano:  { label: "🏙️ Urbano" },
+}
 
-type Props = {
-  paginaAtiva?: string;
-};
+const navIcons = [
+  { image: Home,     label: "Home",     href: "/",         isPublicar: false },
+  { image: Search,   label: "Buscar",   href: "/buscar",   isPublicar: false },
+  { image: Publicar, label: "Publicar", href: "/publicar", isPublicar: true  },
+  { image: Curtidos, label: "Curtidos", href: "/curtidos", isPublicar: false },
+  { image: Seguindo, label: "Seguindo", href: "/seguindo", isPublicar: false },
+]
 
-export default function Asidebar({ paginaAtiva }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const { tema, setTema } = useTema();
-  const [modalPublicar, setModalPublicar] = useState(false);
-  const [modalTema, setModalTema] = useState(false);
-  const { perfil } = usePerfilAtual();
+export default function Asidebar() {
+  const router   = useRouter()
+  const pathname = usePathname()
+  const { tema, setTema } = useTema()
+  const { perfil } = usePerfilAtual()
+  const [open, setOpen]               = useState(false)
+  const [modalPublicar, setModalPublicar] = useState(false)
+  const [modalTema, setModalTema]         = useState(false)
 
-  const nav = (href: string) => router.push(href);
-  const ativo = (href: string) => pathname === href || paginaAtiva === href.replace("/", "");
+  const ativo = (href: string) => pathname === href
 
-  const iconBtn = (href: string, icon: string, label: string, onClick?: () => void) => (
-    <button
-      onClick={onClick ?? (() => nav(href))}
-      title={label}
-      className={`w-12 h-12 flex items-center justify-center rounded-2xl text-2xl transition-all duration-200
-        ${ativo(href)
-          ? "bg-[var(--cor-secundaria)] text-[var(--cor-branco)] shadow-lg scale-105"
-          : "text-[var(--cor-secundaria)] hover:bg-[var(--cor-secundaria)] hover:text-[var(--cor-branco)] hover:scale-105"
-        }`}
-    >
-      {icon}
-    </button>
-  );
-
-  // Botão de perfil com avatar real
-  const perfilBtn = () => {
-    const href = perfil ? `/perfil/${perfil.username}` : "/perfil";
-    const estaAtivo = pathname.startsWith("/perfil");
-
-    return (
-      <button
-        onClick={() => nav(href)}
-        title="Meu Perfil"
-        className={`w-12 h-12 flex items-center justify-center rounded-2xl text-2xl transition-all duration-200 overflow-hidden
-          ${estaAtivo
-            ? "ring-2 ring-[var(--cor-secundaria)] shadow-lg scale-105"
-            : "hover:scale-105 hover:ring-2 hover:ring-[var(--cor-secundaria)]"
-          }`}
-      >
-        {perfil?.avatar_url ? (
-          <img src={perfil.avatar_url} className="w-full h-full object-cover rounded-2xl" alt={perfil.nome} />
-        ) : (
-          <span className={`w-full h-full flex items-center justify-center rounded-2xl font-bold text-sm
-            ${estaAtivo
-              ? "bg-[var(--cor-secundaria)] text-[var(--cor-branco)]"
-              : "bg-[var(--bg-card)] text-[var(--cor-secundaria)] hover:bg-[var(--cor-secundaria)] hover:text-[var(--cor-branco)]"
-            }`}>
-            {perfil ? perfil.nome[0].toUpperCase() : "👤"}
-          </span>
-        )}
-      </button>
-    );
-  };
+  const hoverOn  = (e: React.MouseEvent<HTMLButtonElement>, isAtivo: boolean) => {
+    if (!isAtivo) e.currentTarget.style.backgroundColor = "var(--cor-hover)"
+  }
+  const hoverOff = (e: React.MouseEvent<HTMLButtonElement>, isAtivo: boolean) => {
+    if (!isAtivo) e.currentTarget.style.backgroundColor = "transparent"
+  }
 
   return (
     <>
-      <aside className="w-20 shrink-0 flex flex-col items-center py-6 gap-5 bg-[var(--bg-sidebar)] border-r border-[var(--cor-borda)]">
-        {/* Logo */}
-        <div
-          onClick={() => nav("/")}
-          className="w-11 h-11 bg-white rounded-full flex items-center justify-center cursor-pointer shadow-md mb-2 text-lg font-bold text-[var(--cor-primaria)]"
-        >
-          NF
-        </div>
-
-        <div className="flex flex-col gap-3 flex-1">
-          {iconBtn("/", "🏠", "Home")}
-          {iconBtn("/buscar", "🔍", "Pesquisar")}
-          {iconBtn("", "➕", "Publicar", () => setModalPublicar(true))}
-          {iconBtn("/curtidos", "🤍", "Curtidos")}
-          {iconBtn("/seguindo", "👥", "Seguindo")}
-          {iconBtn("/loja", "🛍️", "Loja")}
-          {perfilBtn()}
-        </div>
-
-        {/* FloriPoints (se logado) */}
-        {perfil && (
-          <div className="flex flex-col items-center gap-1 px-2 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--cor-borda)] w-14">
-            <span className="text-base">🌿</span>
-            <span className="text-[10px] font-bold text-[var(--cor-primaria)] leading-tight text-center">
-              {perfil.floripoints}
+      <aside
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        className={`
+          ${open ? "w-52" : "w-20"}
+          h-screen shrink-0
+          flex flex-col py-6
+          transition-all duration-300 ease-in-out
+          overflow-hidden z-40
+          border-r
+        `}
+        style={{
+          backgroundColor: "var(--bg-sidebar)",
+          borderColor: "var(--cor-borda)",
+        }}
+      >
+        {/* Logo topo */}
+        <div className="flex items-center px-4 mb-6">
+          <div
+            onClick={() => router.push("/")}
+            className="w-11 h-11 shrink-0 bg-white rounded-full flex items-center justify-center cursor-pointer shadow-md font-bold text-sm"
+            style={{ color: "var(--cor-primaria)" }}
+          >
+            NF
+          </div>
+          {open && (
+            <span
+              className="ml-3 font-bold text-sm whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-200"
+              style={{ color: "var(--cor-texto)" }}
+            >
+              Nova Floripa
             </span>
-            <span className="text-[9px] text-[var(--cor-texto-suave)] leading-tight text-center">pts</span>
+          )}
+        </div>
+
+        {/* Nav */}
+        <nav className="flex flex-col gap-1 flex-1 w-full px-3 mt-35">
+          {navIcons.map(({ image: Icon, label, href, isPublicar }) => {
+            const estaAtivo = ativo(href)
+            return (
+              <button
+                key={label}
+                onClick={() => isPublicar ? setModalPublicar(true) : router.push(href)}
+                title={label}
+                onMouseEnter={(e) => hoverOn(e, estaAtivo)}
+                onMouseLeave={(e) => hoverOff(e, estaAtivo)}
+                className="w-full h-12 flex items-center gap-3 px-2 rounded-xl transition-colors duration-200"
+                style={{
+                  color: "var(--cor-secundaria)",
+                  backgroundColor: estaAtivo ? "var(--cor-ativo)" : "transparent",
+                }}
+              >
+                <span className="shrink-0 w-10 h-10 flex items-center justify-center">
+                  <Image src={Icon} alt={label} width={28} height={28} />
+                </span>
+                {open && (
+                  <span className="whitespace-nowrap font-semibold text-sm animate-in fade-in slide-in-from-left-2 duration-200">
+                    {label}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+
+          {/* Perfil */}
+          {(() => {
+            const estaAtivo = pathname.startsWith("/perfil")
+            return (
+              <button
+                onClick={() => router.push(perfil ? `/perfil/${perfil.username}` : "/perfil")}
+                title="Perfil"
+                onMouseEnter={(e) => hoverOn(e, estaAtivo)}
+                onMouseLeave={(e) => hoverOff(e, estaAtivo)}
+                className="w-full h-12 flex items-center gap-3 px-2 rounded-xl transition-colors duration-200"
+                style={{
+                  color: "var(--cor-secundaria)",
+                  backgroundColor: estaAtivo ? "var(--cor-ativo)" : "transparent",
+                }}
+              >
+                <span className="shrink-0 w-10 h-10 flex items-center justify-center">
+                  {perfil?.avatar_url
+                    ? <img src={perfil.avatar_url} alt={perfil.nome} className="w-9 h-9 rounded-full object-cover" />
+                    : <Image src={Perfil} alt="Perfil" width={28} height={28} />
+                  }
+                </span>
+                {open && (
+                  <span className="whitespace-nowrap font-semibold text-sm animate-in fade-in slide-in-from-left-2 duration-200">
+                    {perfil?.nome ?? "Perfil"}
+                  </span>
+                )}
+              </button>
+            )
+          })()}
+        </nav>
+
+        {/* FloriPoints */}
+        {perfil && (
+          <div
+            className={`mx-3 mb-3 px-2 py-2 rounded-xl flex items-center gap-2 border ${open ? "justify-start" : "justify-center"}`}
+            style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--cor-borda)" }}
+          >
+            <span className="text-sm shrink-0">🌿</span>
+            <span
+              className="text-xs font-bold whitespace-nowrap animate-in fade-in duration-200"
+              style={{ color: "var(--cor-primaria)" }}
+            >
+              {open ? `${perfil.floripoints} pts` : perfil.floripoints}
+            </span>
           </div>
         )}
 
-        {/* Config + Tema */}
-        <div className="flex flex-col gap-3">
-          <button
-            onClick={() => setModalTema(true)}
-            title="Trocar tema"
-            className="w-12 h-12 flex items-center justify-center rounded-2xl text-2xl text-[var(--cor-secundaria)] hover:bg-[var(--cor-secundaria)] hover:text-[var(--cor-branco)] transition-all"
-          >
-            🎨
-          </button>
-          {iconBtn("/config", "⚙️", "Configurações")}
+        {/* Rodapé — Tema + Config */}
+        <div className="flex flex-col gap-1 w-full px-3">
+          {[
+            { Icon: Theme,  label: "Tema",   onClick: () => setModalTema(true),       href: "" },
+            { Icon: Config, label: "Config", onClick: () => router.push("/config"),   href: "/config" },
+          ].map(({ Icon, label, onClick, href }) => {
+            const estaAtivo = href ? ativo(href) : false
+            return (
+              <button
+                key={label}
+                onClick={onClick}
+                title={label}
+                onMouseEnter={(e) => hoverOn(e, estaAtivo)}
+                onMouseLeave={(e) => hoverOff(e, estaAtivo)}
+                className="w-full h-12 flex items-center gap-3 px-2 rounded-xl transition-colors duration-200"
+                style={{
+                  color: "var(--cor-secundaria)",
+                  backgroundColor: estaAtivo ? "var(--cor-ativo)" : "transparent",
+                }}
+              >
+                <span className="shrink-0 w-10 h-10 flex items-center justify-center">
+                  <Image src={Icon} alt={label} width={28} height={28} />
+                </span>
+                {open && (
+                  <span className="whitespace-nowrap font-semibold text-sm animate-in fade-in slide-in-from-left-2 duration-200">
+                    {label}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </aside>
 
       {/* Modal Publicar */}
       {modalPublicar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setModalPublicar(false)}>
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-[var(--bg-main)] rounded-2xl p-6 w-80 flex flex-col gap-3 shadow-2xl border border-[var(--cor-borda)]"
-          >
-            <h2 className="font-bold text-lg text-[var(--cor-texto)] mb-2">O que quer publicar?</h2>
+          <div onClick={(e) => e.stopPropagation()} className="rounded-2xl p-6 w-80 flex flex-col gap-3 shadow-2xl border"
+            style={{ backgroundColor: "var(--bg-main)", borderColor: "var(--cor-borda)" }}>
+            <h2 className="font-bold text-lg mb-2" style={{ color: "var(--cor-texto)" }}>O que quer publicar?</h2>
             {[
-              { label: "📸 Post no feed", sub: "Compartilhe uma boa ação", href: "/publicar?tipo=post" },
-              { label: "🌟 Ajuda semanal", sub: "1 por semana • ganha 300 FloriPoints", href: "/publicar?tipo=ajuda" },
-              { label: "📅 Criar evento", sub: "Junte pessoas para ajudar Floripa", href: "/publicar?tipo=evento" },
+              { label: "📸 Post no feed",  sub: "Compartilhe uma boa ação",             href: "/publicar?tipo=post"   },
+              { label: "🌟 Ajuda semanal", sub: "1 por semana • ganha 300 FloriPoints", href: "/publicar?tipo=ajuda"  },
+              { label: "📅 Criar evento",  sub: "Junte pessoas para ajudar Floripa",     href: "/publicar?tipo=evento" },
             ].map((item) => (
-              <button
-                key={item.href}
-                onClick={() => { setModalPublicar(false); router.push(item.href); }}
-                className="flex flex-col text-left p-4 rounded-xl border border-[var(--cor-borda)] hover:bg-[var(--bg-card)] transition-all"
-              >
-                <span className="font-semibold text-[var(--cor-texto)]">{item.label}</span>
-                <span className="text-xs text-[var(--cor-texto-suave)] mt-0.5">{item.sub}</span>
+              <button key={item.href} onClick={() => { setModalPublicar(false); router.push(item.href) }}
+                className="flex flex-col text-left p-4 rounded-xl border transition-all"
+                style={{ borderColor: "var(--cor-borda)", color: "var(--cor-texto)" }}>
+                <span className="font-semibold">{item.label}</span>
+                <span className="text-xs mt-0.5" style={{ color: "var(--cor-texto-suave)" }}>{item.sub}</span>
               </button>
             ))}
-            <button onClick={() => setModalPublicar(false)} className="text-sm text-[var(--cor-texto-suave)] mt-1 hover:opacity-70">Cancelar</button>
+            <button onClick={() => setModalPublicar(false)} className="text-sm mt-1 hover:opacity-70"
+              style={{ color: "var(--cor-texto-suave)" }}>Cancelar</button>
           </div>
         </div>
       )}
@@ -146,37 +220,33 @@ export default function Asidebar({ paginaAtiva }: Props) {
       {/* Modal Tema */}
       {modalTema && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setModalTema(false)}>
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-[var(--bg-main)] rounded-2xl p-6 w-80 flex flex-col gap-3 shadow-2xl border border-[var(--cor-borda)]"
-          >
-            <h2 className="font-bold text-lg text-[var(--cor-texto)] mb-2">🎨 Escolha um tema</h2>
+          <div onClick={(e) => e.stopPropagation()} className="rounded-2xl p-6 w-80 flex flex-col gap-3 shadow-2xl border"
+            style={{ backgroundColor: "var(--bg-main)", borderColor: "var(--cor-borda)" }}>
+            <h2 className="font-bold text-lg mb-2" style={{ color: "var(--cor-texto)" }}>Escolha um tema</h2>
             {(Object.keys(temaInfo) as Tema[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => { setTema(t); setModalTema(false); }}
-                className={`flex items-center gap-3 p-4 rounded-xl border transition-all
-                  ${tema === t
-                    ? "border-[var(--cor-primaria)] bg-[var(--bg-card)] font-bold"
-                    : "border-[var(--cor-borda)] hover:bg-[var(--bg-card)]"
-                  }`}
-              >
-                <span className="text-2xl">{temaInfo[t].emoji}</span>
-                <div className="text-left">
-                  <p className="font-semibold text-[var(--cor-texto)]">{temaInfo[t].label}</p>
+              <button key={t} onClick={() => { setTema(t); setModalTema(false) }}
+                className="flex items-center gap-3 p-4 rounded-xl border transition-all"
+                style={{
+                  borderColor: tema === t ? "var(--cor-primaria)" : "var(--cor-borda)",
+                  backgroundColor: tema === t ? "var(--bg-card)" : "transparent",
+                  fontWeight: tema === t ? "700" : "400",
+                }}>
+                <div className="text-left flex-1">
+                  <p className="font-semibold" style={{ color: "var(--cor-texto)" }}>{temaInfo[t].label}</p>
                   <div className="flex gap-1 mt-1">
                     {Object.values(temas[t]).slice(0, 4).map((cor, i) => (
                       <div key={i} className="w-4 h-4 rounded-full border border-black/10" style={{ background: String(cor) }} />
                     ))}
                   </div>
                 </div>
-                {tema === t && <span className="ml-auto text-[var(--cor-primaria)]">✓</span>}
+                {tema === t && <span style={{ color: "var(--cor-primaria)" }}>✓</span>}
               </button>
             ))}
-            <button onClick={() => setModalTema(false)} className="text-sm text-[var(--cor-texto-suave)] mt-1 hover:opacity-70">Fechar</button>
+            <button onClick={() => setModalTema(false)} className="text-sm mt-1 hover:opacity-70"
+              style={{ color: "var(--cor-texto-suave)" }}>Fechar</button>
           </div>
         </div>
       )}
     </>
-  );
+  )
 }

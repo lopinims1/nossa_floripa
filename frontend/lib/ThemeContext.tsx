@@ -5,10 +5,10 @@ export type Tema = "floripa" | "noturno" | "oceano" | "urbano";
 
 export const temas: Record<Tema, Record<string, string>> = {
   floripa: {
-    "--bg-sidebar": "#d4e8c2",
+    "--bg-sidebar": "#FFF5E7",
     "--bg-main": "#FFF5E7",
     "--bg-feed": "#FFF5E7",
-    "--bg-right": "#d4e8c2",
+    "--bg-right": "#FFF5E7",
     "--bg-card": "#f5ede0",
     "--cor-primaria": "#3C5E45",
     "--cor-secundaria": "#3C5E45",
@@ -17,6 +17,8 @@ export const temas: Record<Tema, Record<string, string>> = {
     "--cor-borda": "#C8A97E",
     "--cor-branco": "#FFF5E7",
     "--cor-accent": "#e8f5d8",
+    "--cor-hover": "rgba(60, 94, 69, 0.15)",
+    "--cor-ativo": "rgba(60, 94, 69, 0.2)",
   },
   noturno: {
     "--bg-sidebar": "#1a1f1b",
@@ -31,6 +33,8 @@ export const temas: Record<Tema, Record<string, string>> = {
     "--cor-borda": "#2e4030",
     "--cor-branco": "#1a2019",
     "--cor-accent": "#2e4a30",
+    "--cor-hover": "rgba(255, 245, 231, 0.2)",
+    "--cor-ativo": "rgba(60, 94, 69, 1)",
   },
   oceano: {
     "--bg-sidebar": "#b8d9e8",
@@ -45,6 +49,8 @@ export const temas: Record<Tema, Record<string, string>> = {
     "--cor-borda": "#5a9ab5",
     "--cor-branco": "#e8f4f8",
     "--cor-accent": "#d0eef8",
+    "--cor-hover": "rgba(26, 77, 107, 0.15)",
+    "--cor-ativo": "rgba(26, 77, 107, 0.2)",
   },
   urbano: {
     "--bg-sidebar": "#2a2a2a",
@@ -58,7 +64,8 @@ export const temas: Record<Tema, Record<string, string>> = {
     "--cor-texto-suave": "#a09070",
     "--cor-borda": "#444444",
     "--cor-branco": "#1a1a1a",
-    "--cor-accent": "#3a3020",
+    "--cor-hover": "rgba(60, 94, 69, 1)",
+    "--cor-ativo": "rgba(60, 94, 69, 1)",
   },
 };
 
@@ -68,7 +75,7 @@ const temaValido = (t: string | null): t is Tema =>
 const TemaContext = createContext<{
   tema: Tema;
   setTema: (t: Tema) => void;
-}>({ tema: "floripa", setTema: () => {} });
+}>({ tema: "floripa", setTema: () => { } });
 
 export function TemaProvider({ children }: { children: ReactNode }) {
   const [tema, setTema] = useState<Tema>("floripa");

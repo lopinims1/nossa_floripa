@@ -168,7 +168,7 @@ export default function MobileLayout() {
                                             style={{ background: "var(--bg-main)", borderColor: "var(--cor-borda)" }}
                                         >
                                             <div
-                                                className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0"
+                                                className="w-11 h-11 rounded-full overflow-hidden shrink-0"
                                                 style={{ background: "var(--bg-card)" }}
                                             >
                                                 {p.avatar_url ? (
@@ -241,7 +241,7 @@ export default function MobileLayout() {
                 </div>
             </main>
 
-            <Sidebar paginaAtiva="buscar" />
+            <Sidebar />
         </div>
     );
 }
