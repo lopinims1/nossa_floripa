@@ -1,7 +1,7 @@
 import DesktopLayout from "./DesktopLayout";
 import MobileLayout from "./MobileLayout";
 
-export default function HomePage() {
+export default function SeguindoPage() {
   return (
     <>
       {/* Desktop: lg+ (≥ 1024px) */}
