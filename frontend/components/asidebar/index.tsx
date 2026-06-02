@@ -3,6 +3,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTema, Tema, temas } from "@/lib/ThemeContext";
 import { supabase } from "@/lib/supabase";
+import { usePerfilAtual } from "@/lib/usePerfilAtual";
 
 const temaInfo: Record<Tema, { label: string; emoji: string }> = {
   floripa: { label: "Floripa", emoji: "🌿" },
@@ -21,6 +22,7 @@ export default function Asidebar({ paginaAtiva }: Props) {
   const { tema, setTema } = useTema();
   const [modalPublicar, setModalPublicar] = useState(false);
   const [modalTema, setModalTema] = useState(false);
+  const { perfil } = usePerfilAtual();
 
   const nav = (href: string) => router.push(href);
   const ativo = (href: string) => pathname === href || paginaAtiva === href.replace("/", "");
@@ -38,6 +40,36 @@ export default function Asidebar({ paginaAtiva }: Props) {
       {icon}
     </button>
   );
+
+  // Botão de perfil com avatar real
+  const perfilBtn = () => {
+    const href = perfil ? `/perfil/${perfil.username}` : "/perfil";
+    const estaAtivo = pathname.startsWith("/perfil");
+
+    return (
+      <button
+        onClick={() => nav(href)}
+        title="Meu Perfil"
+        className={`w-12 h-12 flex items-center justify-center rounded-2xl text-2xl transition-all duration-200 overflow-hidden
+          ${estaAtivo
+            ? "ring-2 ring-[var(--cor-secundaria)] shadow-lg scale-105"
+            : "hover:scale-105 hover:ring-2 hover:ring-[var(--cor-secundaria)]"
+          }`}
+      >
+        {perfil?.avatar_url ? (
+          <img src={perfil.avatar_url} className="w-full h-full object-cover rounded-2xl" alt={perfil.nome} />
+        ) : (
+          <span className={`w-full h-full flex items-center justify-center rounded-2xl font-bold text-sm
+            ${estaAtivo
+              ? "bg-[var(--cor-secundaria)] text-[var(--cor-branco)]"
+              : "bg-[var(--bg-card)] text-[var(--cor-secundaria)] hover:bg-[var(--cor-secundaria)] hover:text-[var(--cor-branco)]"
+            }`}>
+            {perfil ? perfil.nome[0].toUpperCase() : "👤"}
+          </span>
+        )}
+      </button>
+    );
+  };
 
   return (
     <>
@@ -57,8 +89,19 @@ export default function Asidebar({ paginaAtiva }: Props) {
           {iconBtn("/curtidos", "🤍", "Curtidos")}
           {iconBtn("/seguindo", "👥", "Seguindo")}
           {iconBtn("/loja", "🛍️", "Loja")}
-          {iconBtn("/perfil", "👤", "Meu Perfil")}
+          {perfilBtn()}
         </div>
+
+        {/* FloriPoints (se logado) */}
+        {perfil && (
+          <div className="flex flex-col items-center gap-1 px-2 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--cor-borda)] w-14">
+            <span className="text-base">🌿</span>
+            <span className="text-[10px] font-bold text-[var(--cor-primaria)] leading-tight text-center">
+              {perfil.floripoints}
+            </span>
+            <span className="text-[9px] text-[var(--cor-texto-suave)] leading-tight text-center">pts</span>
+          </div>
+        )}
 
         {/* Config + Tema */}
         <div className="flex flex-col gap-3">
