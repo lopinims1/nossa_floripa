@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Asidebar from "@/components/asidebar";
 import { supabase } from "@/lib/supabase";
-import Sidebar from "@/components/asidebar";
-import { ShoppingBag, Star, Sparkles, Crown, Package } from "lucide-react";
 
 type Item = {
   id: string;
@@ -15,230 +15,315 @@ type Item = {
   apenas_evento_marca: boolean;
 };
 
-type FiltroTipo = "todos" | "moldura" | "emoji" | "badge";
-type FiltroRaridade = "todos" | "comum" | "incomum" | "raro" | "lendario";
+type InventarioItem = {
+  id: string;
+  item_id: string;
+  equipado: boolean;
+};
 
 const raridadeCor: Record<string, string> = {
-  comum: "text-[#6B6B6B] bg-[#F0F0F0]",
-  incomum: "text-blue-600 bg-blue-50",
-  raro: "text-purple-600 bg-purple-50",
-  lendario: "text-yellow-600 bg-yellow-50",
+  comum: "text-gray-400 border-gray-400",
+  incomum: "text-green-400 border-green-400",
+  raro: "text-blue-400 border-blue-400",
+  lendario: "text-yellow-400 border-yellow-400",
 };
 
 const raridadeLabel: Record<string, string> = {
   comum: "Comum",
   incomum: "Incomum",
   raro: "Raro",
-  lendario: "Lendário",
+  lendario: "Lendário ✨",
 };
 
-const raridadeIcone: Record<string, any> = {
-  comum: Package,
-  incomum: Star,
-  raro: Sparkles,
-  lendario: Crown,
+// Preview visual de molduras por nome
+const molduraEstilo: Record<string, string> = {
+  "Moldura Arco-Íris": "bg-gradient-to-br from-red-400 via-yellow-400 via-green-400 to-blue-400",
+  "Moldura Praia": "bg-gradient-to-br from-yellow-300 to-blue-400",
+  "Moldura Floripa": "bg-gradient-to-br from-green-400 to-emerald-700",
+  "Moldura Lendária": "bg-gradient-to-br from-yellow-300 via-yellow-500 to-orange-500",
+  "Moldura Dourada": "bg-gradient-to-br from-yellow-400 to-amber-600",
 };
 
-export default function DesktopLayout() {
-  const [itens, setItens] = useState<Item[]>([]);
-  const [inventario, setInventario] = useState<Set<string>>(new Set());
-  const [floripoints, setFloripoints] = useState(0);
-  const [usuarioId, setUsuarioId] = useState<string | null>(null);
-  const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("todos");
-  const [filtroRaridade, setFiltroRaridade] = useState<FiltroRaridade>("todos");
-  const [comprando, setComprando] = useState<string | null>(null);
-  const [mensagem, setMensagem] = useState<{ texto: string; tipo: "ok" | "erro" } | null>(null);
+function ItemCard({
+  item,
+  noInventario,
+  equipado,
+  floripoints,
+  onComprar,
+  onEquipar,
+}: {
+  item: Item;
+  noInventario: boolean;
+  equipado: boolean;
+  floripoints: number;
+  onComprar: (item: Item) => void;
+  onEquipar: (item: Item) => void;
+}) {
+  const podePagar = floripoints >= item.preco_pontos;
 
-  useEffect(() => {
-    async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      setUsuarioId(user.id);
-
-      const [{ data: perfil }, { data: itensData }, { data: inv }] = await Promise.all([
-        supabase.from("perfis").select("floripoints").eq("id", user.id).single(),
-        supabase.from("loja_itens").select("*").order("preco_pontos"),
-        supabase.from("inventario").select("item_id").eq("usuario_id", user.id),
-      ]);
-
-      setFloripoints(perfil?.floripoints || 0);
-      setItens((itensData || []) as Item[]);
-      setInventario(new Set(inv?.map((i: any) => i.item_id) || []));
+  const renderPreview = () => {
+    if (item.tipo === "moldura") {
+      const estilo = molduraEstilo[item.nome] ?? "bg-gradient-to-br from-purple-400 to-pink-400";
+      return (
+        <div className={`w-16 h-16 rounded-full ${estilo} p-1`}>
+          <div className="w-full h-full rounded-full bg-[var(--bg-feed)] flex items-center justify-center text-2xl font-black text-[var(--cor-primaria)]">
+            A
+          </div>
+        </div>
+      );
     }
-    init();
-  }, []);
-
-  async function comprar(item: Item) {
-    if (!usuarioId) return;
-    if (inventario.has(item.id)) return;
-    if (item.apenas_evento_marca) {
-      setMensagem({ texto: "Este item só é obtido em eventos de marcas parceiras!", tipo: "erro" });
-      setTimeout(() => setMensagem(null), 3000);
-      return;
+    if (item.tipo === "emoji") {
+      return <span className="text-5xl">{item.nome.split(" ")[1] ?? "⭐"}</span>;
     }
-    if (floripoints < item.preco_pontos) {
-      setMensagem({ texto: "FloriPoints insuficientes! Participe de eventos para ganhar mais.", tipo: "erro" });
-      setTimeout(() => setMensagem(null), 3000);
-      return;
+    if (item.tipo === "badge") {
+      return <span className="text-5xl">🏅</span>;
     }
-
-    setComprando(item.id);
-    const novoPontos = floripoints - item.preco_pontos;
-
-    const [{ error: e1 }, { error: e2 }] = await Promise.all([
-      supabase.from("inventario").insert({ usuario_id: usuarioId, item_id: item.id }),
-      supabase.from("perfis").update({ floripoints: novoPontos }).eq("id", usuarioId),
-    ]);
-
-    if (e1 || e2) {
-      setMensagem({ texto: "Erro ao comprar. Tente novamente.", tipo: "erro" });
-    } else {
-      setFloripoints(novoPontos);
-      setInventario(prev => new Set([...prev, item.id]));
-      setMensagem({ texto: `"${item.nome}" adicionado ao inventário! 🎉`, tipo: "ok" });
-    }
-    setComprando(null);
-    setTimeout(() => setMensagem(null), 3000);
-  }
-
-  const itensFiltrados = itens.filter((i) => {
-    if (filtroTipo !== "todos" && i.tipo !== filtroTipo) return false;
-    if (filtroRaridade !== "todos" && i.raridade !== filtroRaridade) return false;
-    return true;
-  });
+    return <div className="w-16 h-16 bg-[var(--bg-card)] rounded-full" />;
+  };
 
   return (
-    <div className="flex h-screen w-screen bg-[#FFF5E7] overflow-hidden">
-      <Sidebar paginaAtiva="loja" />
+    <div className={`relative flex flex-col gap-3 p-4 rounded-2xl border-2 transition-all
+      ${equipado ? "border-[var(--cor-primaria)] bg-[var(--bg-card)]" : "border-[var(--cor-borda)] bg-[var(--bg-main)] hover:border-[var(--cor-primaria)]/50"}`}>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-6 py-8">
+      {/* Badge raridade */}
+      <span className={`absolute top-3 right-3 text-xs font-bold border rounded-full px-2 py-0.5 ${raridadeCor[item.raridade]}`}>
+        {raridadeLabel[item.raridade]}
+      </span>
 
-          {/* Header com pontos */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <ShoppingBag className="w-7 h-7 text-[#3C5E45]" />
-              <h1 className="text-[#3C5E45] text-2xl font-semibold">Loja FloriPoints</h1>
+      {/* Preview */}
+      <div className="flex justify-center items-center h-24">
+        {renderPreview()}
+      </div>
+
+      {/* Info */}
+      <div>
+        <p className="font-bold text-sm text-[var(--cor-texto)]">{item.nome}</p>
+        {item.descricao && <p className="text-xs text-[var(--cor-texto-suave)] mt-0.5">{item.descricao}</p>}
+        {item.apenas_evento_marca && (
+          <p className="text-xs text-yellow-400 mt-1">🎪 Exclusivo de evento</p>
+        )}
+      </div>
+
+      {/* Preço / ação */}
+      <div className="mt-auto">
+        {noInventario ? (
+          <button
+            onClick={() => onEquipar(item)}
+            className={`w-full py-2 rounded-xl text-sm font-bold transition-all
+              ${equipado
+                ? "bg-[var(--cor-primaria)] text-white"
+                : "border border-[var(--cor-primaria)] text-[var(--cor-primaria)] hover:bg-[var(--cor-primaria)] hover:text-white"
+              }`}
+          >
+            {equipado ? "✓ Equipado" : "Equipar"}
+          </button>
+        ) : (
+          <button
+            onClick={() => onComprar(item)}
+            disabled={!podePagar || item.apenas_evento_marca}
+            className="w-full py-2 rounded-xl text-sm font-bold transition-all bg-[var(--cor-secundaria)] text-[var(--cor-branco)] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {item.apenas_evento_marca ? "🔒 Exclusivo" : `🌿 ${item.preco_pontos} pts`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function LojaDesktopLayout() {
+  const [itens, setItens] = useState<Item[]>([]);
+  const [inventario, setInventario] = useState<InventarioItem[]>([]);
+  const [floripoints, setFloripoints] = useState(0);
+  const [usuarioId, setUsuarioId] = useState<string | null>(null);
+  const [filtroTipo, setFiltroTipo] = useState<"todos" | "moldura" | "emoji" | "badge">("todos");
+  const [abaAtiva, setAbaAtiva] = useState<"loja" | "inventario">("loja");
+  const [carregando, setCarregando] = useState(true);
+  const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    carregar();
+  }, []);
+
+  const carregar = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    setUsuarioId(user.id);
+
+    const [itensRes, inventarioRes, perfilRes] = await Promise.all([
+      supabase.from("loja_itens").select("*").order("preco_pontos"),
+      supabase.from("inventario").select("*").eq("usuario_id", user.id),
+      supabase.from("perfis").select("floripoints").eq("id", user.id).single(),
+    ]);
+
+    setItens(itensRes.data ?? []);
+    setInventario(inventarioRes.data ?? []);
+    setFloripoints(perfilRes.data?.floripoints ?? 0);
+    setCarregando(false);
+  };
+
+  const mostrarToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  };
+
+  const comprar = async (item: Item) => {
+    if (!usuarioId || floripoints < item.preco_pontos) return;
+
+    // Desconta pontos
+    const novoPts = floripoints - item.preco_pontos;
+    await supabase.from("perfis").update({ floripoints: novoPts }).eq("id", usuarioId);
+
+    // Adiciona ao inventário
+    const { data } = await supabase.from("inventario").insert({
+      usuario_id: usuarioId,
+      item_id: item.id,
+      equipado: false,
+    }).select().single();
+
+    if (data) {
+      setInventario((prev) => [...prev, data]);
+      setFloripoints(novoPts);
+      mostrarToast(`✅ ${item.nome} comprado!`);
+    }
+  };
+
+  const equipar = async (item: Item) => {
+    if (!usuarioId) return;
+
+    const invItem = inventario.find((i) => i.item_id === item.id);
+    if (!invItem) return;
+
+    const jaEquipado = invItem.equipado;
+
+    // Desequipa todos do mesmo tipo primeiro
+    const mesmotipo = inventario.filter((i) => {
+      const loja = itens.find((l) => l.id === i.item_id);
+      return loja?.tipo === item.tipo && i.equipado;
+    });
+
+    for (const outro of mesmotipo) {
+      await supabase.from("inventario").update({ equipado: false }).eq("id", outro.id);
+    }
+
+    // Equipa/desequipa o atual
+    const novoEquipado = !jaEquipado;
+    await supabase.from("inventario").update({ equipado: novoEquipado }).eq("id", invItem.id);
+
+    // Atualiza moldura no perfil se for moldura
+    if (item.tipo === "moldura") {
+      await supabase.from("perfis").update({
+        moldura_ativa: novoEquipado ? item.id : null,
+      }).eq("id", usuarioId);
+    }
+
+    setInventario((prev) =>
+      prev.map((i) => {
+        if (mesmotipo.find((m) => m.id === i.id)) return { ...i, equipado: false };
+        if (i.id === invItem.id) return { ...i, equipado: novoEquipado };
+        return i;
+      })
+    );
+
+    mostrarToast(novoEquipado ? `✨ ${item.nome} equipado!` : `${item.nome} desequipado.`);
+  };
+
+  const itensNoInventario = new Set(inventario.map((i) => i.item_id));
+  const equipados = new Set(inventario.filter((i) => i.equipado).map((i) => i.item_id));
+
+  const itensFiltrados = itens.filter((i) =>
+    (filtroTipo === "todos" || i.tipo === filtroTipo) &&
+    (abaAtiva === "loja" ? !itensNoInventario.has(i.id) : itensNoInventario.has(i.id))
+  );
+
+  return (
+    <div className="flex bg-[var(--bg-sidebar)] w-screen h-screen overflow-hidden font-sans">
+      <Asidebar />
+
+      <div className="flex-1 bg-[var(--bg-feed)] overflow-y-auto">
+        <div className="max-w-4xl mx-auto py-8 px-6">
+
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="font-black text-2xl text-[var(--cor-texto)]">🛍️ Loja</h1>
+              <p className="text-sm text-[var(--cor-texto-suave)] mt-1">Personalize seu perfil com FloriPoints</p>
             </div>
-            <div className="flex items-center gap-2 bg-[#3C5E45] text-white px-5 py-2.5 rounded-full">
-              <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" />
-              <span className="font-semibold">{floripoints.toLocaleString("pt-BR")} pts</span>
+            <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-[var(--cor-borda)] rounded-xl px-4 py-2">
+              <span className="text-lg">🌿</span>
+              <span className="font-bold text-[var(--cor-primaria)]">{floripoints} pts</span>
             </div>
           </div>
 
-          {/* Banner info */}
-          <div className="bg-[#3C5E45]/10 border border-[#3C5E45]/20 rounded-xl p-4 mb-6 text-sm text-[#3C5E45]">
-            💡 <strong>Como ganhar FloriPoints:</strong> Participe de eventos na aba Eventos e ganhe pontos.
-            Publique uma ajuda semanal para a comunidade e ganhe <strong>300 pts</strong> por semana.
+          {/* Abas loja / inventário */}
+          <div className="flex gap-2 mb-6">
+            {[
+              { key: "loja", label: "🛍️ Loja" },
+              { key: "inventario", label: "🎒 Inventário" },
+            ].map((a) => (
+              <button key={a.key} onClick={() => setAbaAtiva(a.key as "loja" | "inventario")}
+                className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all border
+                  ${abaAtiva === a.key
+                    ? "bg-[var(--cor-primaria)] text-white border-transparent"
+                    : "border-[var(--cor-borda)] text-[var(--cor-texto-suave)] hover:bg-[var(--bg-card)]"
+                  }`}>
+                {a.label}
+              </button>
+            ))}
           </div>
 
-          {/* Toast */}
-          {mensagem && (
-            <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${mensagem.tipo === "ok" ? "bg-[#3C5E45] text-white" : "bg-red-500 text-white"
-              }`}>
-              {mensagem.texto}
-            </div>
-          )}
-
-          {/* Filtros */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            <div className="flex gap-2">
-              {(["todos", "moldura", "emoji", "badge"] as FiltroTipo[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFiltroTipo(f)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize ${filtroTipo === f
-                    ? "bg-[#3C5E45] text-white border-[#3C5E45]"
-                    : "bg-white text-[#3C5E45] border-[#C8A97E] hover:border-[#3C5E45]"
-                    }`}
-                >
-                  {f === "todos" ? "Todos" : f === "moldura" ? "Molduras" : f === "emoji" ? "Emojis" : "Badges"}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              {(["todos", "comum", "incomum", "raro", "lendario"] as FiltroRaridade[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFiltroRaridade(f)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${filtroRaridade === f
-                    ? "bg-[#3C5E45] text-white border-[#3C5E45]"
-                    : "bg-white text-[#3C5E45] border-[#C8A97E] hover:border-[#3C5E45]"
-                    }`}
-                >
-                  {f === "todos" ? "Raridade" : raridadeLabel[f]}
-                </button>
-              ))}
-            </div>
+          {/* Filtros tipo */}
+          <div className="flex gap-2 mb-6">
+            {[
+              { key: "todos", label: "Todos" },
+              { key: "moldura", label: "🔵 Molduras" },
+              { key: "emoji", label: "⭐ Emojis" },
+              { key: "badge", label: "🏅 Badges" },
+            ].map((f) => (
+              <button key={f.key} onClick={() => setFiltroTipo(f.key as typeof filtroTipo)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all border
+                  ${filtroTipo === f.key
+                    ? "bg-[var(--cor-secundaria)] text-white border-transparent"
+                    : "border-[var(--cor-borda)] text-[var(--cor-texto-suave)] hover:bg-[var(--bg-card)]"
+                  }`}>
+                {f.label}
+              </button>
+            ))}
           </div>
 
-          {/* Grid de itens */}
-          {itensFiltrados.length === 0 ? (
-            <p className="text-center text-[#A89070] py-16">Nenhum item encontrado.</p>
+          {/* Grid itens */}
+          {carregando ? (
+            <div className="flex justify-center py-20">
+              <div className="w-10 h-10 border-2 border-[var(--cor-primaria)] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : itensFiltrados.length === 0 ? (
+            <p className="text-center text-[var(--cor-texto-suave)] py-20 text-sm">
+              {abaAtiva === "inventario" ? "Seu inventário está vazio. Compre itens na loja! 🛍️" : "Nenhum item disponível nessa categoria."}
+            </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {itensFiltrados.map((item) => {
-                const possuiItem = inventario.has(item.id);
-                const Icone = raridadeIcone[item.raridade];
-                return (
-                  <div
-                    key={item.id}
-                    className={`bg-white rounded-xl border p-4 flex flex-col gap-3 transition-all ${possuiItem ? "border-[#3C5E45]/40 opacity-80" : "border-[#E8D5C0] hover:border-[#3C5E45] hover:shadow-sm"
-                      }`}
-                  >
-                    {/* Preview do item */}
-                    <div className="aspect-square rounded-lg bg-[#FFF5E7] flex items-center justify-center overflow-hidden">
-                      {item.imagem_url ? (
-                        <img src={item.imagem_url} alt={item.nome} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-4xl">
-                          {item.tipo === "emoji" ? item.nome.split(" ")[0] : item.tipo === "moldura" ? "🖼️" : "🏅"}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div>
-                      <p className="font-medium text-[#3C5E45] text-sm truncate">{item.nome}</p>
-                      <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full mt-1 font-medium ${raridadeCor[item.raridade]}`}>
-                        <Icone className="w-3 h-3" />
-                        {raridadeLabel[item.raridade]}
-                      </span>
-                    </div>
-
-                    {/* Botão */}
-                    {possuiItem ? (
-                      <div className="text-center text-xs text-[#3C5E45] font-medium py-2 bg-[#3C5E45]/10 rounded-lg">
-                        ✓ No inventário
-                      </div>
-                    ) : item.apenas_evento_marca ? (
-                      <div className="text-center text-xs text-yellow-600 font-medium py-2 bg-yellow-50 rounded-lg">
-                        👑 Evento exclusivo
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => comprar(item)}
-                        disabled={comprando === item.id || floripoints < item.preco_pontos}
-                        className={`w-full py-2 rounded-lg text-sm font-medium transition-all ${floripoints >= item.preco_pontos
-                          ? "bg-[#3C5E45] text-white hover:bg-[#2e4a36]"
-                          : "bg-[#E8D5C0] text-[#A89070] cursor-not-allowed"
-                          } disabled:opacity-60`}
-                      >
-                        {comprando === item.id ? "Comprando..." : (
-                          <span className="flex items-center justify-center gap-1">
-                            <Star className="w-3.5 h-3.5 fill-yellow-300 text-yellow-300" />
-                            {item.preco_pontos.toLocaleString("pt-BR")} pts
-                          </span>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+              {itensFiltrados.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  noInventario={itensNoInventario.has(item.id)}
+                  equipado={equipados.has(item.id)}
+                  floripoints={floripoints}
+                  onComprar={comprar}
+                  onEquipar={equipar}
+                />
+              ))}
             </div>
           )}
         </div>
-      </main>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[var(--cor-primaria)] text-white px-6 py-3 rounded-xl shadow-xl text-sm font-semibold z-50 animate-in fade-in slide-in-from-bottom-4">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
