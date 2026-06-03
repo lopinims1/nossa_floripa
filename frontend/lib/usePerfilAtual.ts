@@ -14,24 +14,29 @@ export function usePerfilAtual() {
   const [perfil, setPerfil] = useState<PerfilAtual | null>(null);
   const [carregando, setCarregando] = useState(true);
 
+  async function buscar() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setPerfil(null); setCarregando(false); return; }
+
+    const { data } = await supabase
+      .from("perfis")
+      .select("id, nome, username, avatar_url, floripoints")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    setPerfil(data ?? null);
+    setCarregando(false);
+  }
+
   useEffect(() => {
-    async function buscar() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setCarregando(false); return; }
-
-      const { data } = await supabase
-        .from("perfis")
-        .select("id, nome, username, avatar_url, floripoints")
-        .eq("id", user.id)
-        .single();
-
-      if (data) setPerfil(data);
-      setCarregando(false);
-    }
     buscar();
 
-    // Atualiza se a sessão mudar (login/logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => buscar());
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+        buscar();
+      }
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 

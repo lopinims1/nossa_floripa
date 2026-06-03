@@ -23,7 +23,6 @@ const erroAmigavel = (msg: string) => {
 };
 
 export default function DesktopLayout() {
-    const router = useRouter();
     const [imagemAtual, setImagemAtual] = useState(0);
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
@@ -41,8 +40,9 @@ export default function DesktopLayout() {
         setCarregando(true);
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) { setErro(erroAmigavel(error.message)); setCarregando(false); return; }
+        await supabase.auth.getSession();
         setCarregando(false);
-        router.push("/");
+        window.location.href = "/";
     }
 
     async function handleGoogle() {
@@ -103,7 +103,6 @@ export default function DesktopLayout() {
                                 className={`${inputBase} ${erro ? "border-red-400" : "border-[#C8A97E]"}`}
                             />
 
-                            {/* Mensagem de erro */}
                             {erro && (
                                 <p className="text-red-500 text-sm ml-1 -mt-1">{erro}</p>
                             )}
